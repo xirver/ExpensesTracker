@@ -72,14 +72,55 @@ App runs at `http://<NAS-IP>:3002`. Data is persisted in `./data/` (Docker volum
 
 ### Update after code changes
 
+Data lives in `./data/` on the NAS (Docker volume mount) — it is never inside the container, so rebuilding never touches it.
+
 ```bash
+# Pull new code and rebuild the container
 git pull
 docker compose up -d --build
 ```
 
+To be safe before a big update, back up first:
+
+```bash
+cp -r data/ data_backup_$(date +%Y%m%d)/
+git pull
+docker compose up -d --build
+```
+
+### Development workflow
+
+```
+[Windows — dev]               [NAS — production]
+  edit code
+  npm run dev  (test locally)
+  git commit
+  git push
+                  →   git pull
+                      docker compose up -d --build
+```
+
+### Import from Excel (on NAS)
+
+After registering your account in the app:
+
+```bash
+# Copy the Excel file to the NAS folder, then:
+docker exec -it expenses-tracker sh
+npm install xlsx
+node import-excel.js <username>
+exit
+```
+
+Already-imported transactions are skipped on re-run, so it's safe to run multiple times.
+
 ### Backup
 
 The entire `data/` folder is the database. Copy it to back up all users and transactions.
+
+```bash
+cp -r data/ data_backup_$(date +%Y%m%d)/
+```
 
 ## Data Model
 
