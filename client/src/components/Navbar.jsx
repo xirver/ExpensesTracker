@@ -5,6 +5,7 @@ const links = [
   { to: '/transactions',    label: '📋 Transazioni'    },
   { to: '/budget',          label: '🎯 Budget'         },
   { to: '/account-balance', label: '🏦 Saldo Conto'   },
+  { to: '/settings',        label: '⚙️ Impostazioni'  },
 ]
 
 export default function Navbar({ username, onLogout }) {

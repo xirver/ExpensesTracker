@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { fmt, fmtDate, accountBalance, currentBalance } from '../utils'
+import { fmt, fmtDate, accountBalance, currentBalance, totalBalance } from '../utils'
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null
@@ -17,10 +17,17 @@ function CustomTooltip({ active, payload, label }) {
 export default function AccountBalance({ db }) {
   const transactions = useMemo(() => db?.transactions || [], [db])
   const settings     = useMemo(() => db?.settings || {}, [db])
-  const account      = useMemo(() => settings.accounts?.[0] || { name: 'Conto', startingBalance: 0 }, [settings])
+  const accounts     = useMemo(() => settings.accounts || [{ name: 'Conto', startingBalance: 0 }], [settings])
 
-  const ledger  = useMemo(() => accountBalance(transactions, account.startingBalance), [transactions, account])
-  const balance = useMemo(() => currentBalance(transactions, account.startingBalance), [transactions, account])
+  const [selectedName, setSelectedName] = useState(null)
+  const account = useMemo(
+    () => accounts.find(a => a.name === selectedName) || accounts[0] || { name: 'Conto', startingBalance: 0 },
+    [accounts, selectedName]
+  )
+
+  const ledger  = useMemo(() => accountBalance(transactions, account.startingBalance, account.name), [transactions, account])
+  const balance = useMemo(() => currentBalance(transactions, account.startingBalance, account.name), [transactions, account])
+  const total   = useMemo(() => totalBalance(transactions, accounts), [transactions, accounts])
 
   // Monthly balance for chart: sample last balance per month
   const chartData = useMemo(() => {
@@ -44,14 +51,33 @@ export default function AccountBalance({ db }) {
   return (
     <div>
       <div className="page-header">
-        <div className="page-title">Saldo Conto — {account.name}</div>
+        <div className="page-title">Saldo Conto</div>
+        {accounts.length > 1 && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            {accounts.map(a => (
+              <button
+                key={a.name}
+                className={`month-tab ${account.name === a.name ? 'active' : ''}`}
+                onClick={() => setSelectedName(a.name)}
+              >
+                {a.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="kpi-grid" style={{ marginBottom: 24 }}>
         <div className="kpi-card">
-          <div className="kpi-label">Saldo Attuale</div>
+          <div className="kpi-label">Saldo — {account.name}</div>
           <div className={`kpi-value ${balance >= 0 ? 'positive' : 'negative'}`}>{fmt(balance)}</div>
         </div>
+        {accounts.length > 1 && (
+          <div className="kpi-card">
+            <div className="kpi-label">Saldo Totale (tutti i conti)</div>
+            <div className={`kpi-value ${total >= 0 ? 'positive' : 'negative'}`}>{fmt(total)}</div>
+          </div>
+        )}
         <div className="kpi-card">
           <div className="kpi-label">Saldo Iniziale</div>
           <div className="kpi-value neutral">{fmt(account.startingBalance)}</div>

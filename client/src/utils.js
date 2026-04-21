@@ -73,10 +73,10 @@ export function expenseByCategory(transactions, year) {
     .sort((a, b) => b.value - a.value)
 }
 
-// Running account balance
-export function accountBalance(transactions, startingBalance) {
+// Running balance for a single account
+export function accountBalance(transactions, startingBalance, accountName) {
   const sorted = [...transactions]
-    .filter(tx => tx.type !== 'Transfer')
+    .filter(tx => tx.type !== 'Transfer' && (!accountName || tx.account === accountName))
     .sort((a, b) => new Date(a.date) - new Date(b.date))
   let balance = startingBalance
   return sorted.map(tx => {
@@ -85,10 +85,17 @@ export function accountBalance(transactions, startingBalance) {
   })
 }
 
-// Current account balance
-export function currentBalance(transactions, startingBalance) {
-  const entries = accountBalance(transactions, startingBalance)
+// Current balance for a single account
+export function currentBalance(transactions, startingBalance, accountName) {
+  const entries = accountBalance(transactions, startingBalance, accountName)
   return entries.length ? entries[entries.length - 1].balance : startingBalance
+}
+
+// Total balance across all accounts
+export function totalBalance(transactions, accounts) {
+  return round2(
+    (accounts || []).reduce((sum, acc) => sum + currentBalance(transactions, acc.startingBalance, acc.name), 0)
+  )
 }
 
 // YTD totals

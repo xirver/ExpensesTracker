@@ -5,7 +5,7 @@ import {
 } from 'recharts'
 import {
   fmt, monthlyBreakdown, expenseByGroup, expenseByCategory,
-  ytdTotals, currentMonthTotals, currentBalance, PIE_COLORS, GROUP_COLORS, monthName
+  ytdTotals, currentMonthTotals, totalBalance, PIE_COLORS, GROUP_COLORS, monthName
 } from '../utils'
 
 function KpiCard({ label, value, sub, colorClass }) {
@@ -49,11 +49,11 @@ export default function Dashboard({ db }) {
 
   const transactions = useMemo(() => db?.transactions || [], [db])
   const settings     = useMemo(() => db?.settings || {}, [db])
-  const startingBal  = useMemo(() => settings.accounts?.[0]?.startingBalance || 0, [settings])
+  const accounts     = useMemo(() => settings.accounts || [], [settings])
 
   const ytd      = useMemo(() => ytdTotals(transactions, year), [transactions, year])
   const thisMonth = useMemo(() => currentMonthTotals(transactions), [transactions])
-  const balance  = useMemo(() => currentBalance(transactions, startingBal), [transactions, startingBal])
+  const balance  = useMemo(() => totalBalance(transactions, accounts), [transactions, accounts])
   const monthly  = useMemo(() => monthlyBreakdown(transactions, year), [transactions, year])
   const byGroup  = useMemo(() => expenseByGroup(transactions, year), [transactions, year])
   const byCategory = useMemo(() => expenseByCategory(transactions, year).slice(0, 8), [transactions])
@@ -67,12 +67,13 @@ export default function Dashboard({ db }) {
 
   // Balance over time (monthly)
   const balanceHistory = useMemo(() => {
+    const startingBal = accounts.reduce((s, a) => s + a.startingBalance, 0)
     let bal = startingBal
     return monthly.map(m => {
       bal += m.income - m.expenses
       return { label: m.label, balance: Math.round(bal * 100) / 100 }
     })
-  }, [monthly, startingBal])
+  }, [monthly, accounts])
 
   if (!db) return <div className="loading">Caricamento...</div>
 

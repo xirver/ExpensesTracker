@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard'
 import Transactions from './components/Transactions'
 import Budget from './components/Budget'
 import AccountBalance from './components/AccountBalance'
+import Settings from './components/Settings'
 
 export default function App() {
   const [token, setToken]   = useState(localStorage.getItem('et_token'))
@@ -62,6 +63,7 @@ export default function App() {
               <Route path="/transactions"    element={<Transactions   db={db} onRefresh={fetchData} />} />
               <Route path="/budget"          element={<Budget         db={db} onRefresh={fetchData} />} />
               <Route path="/account-balance" element={<AccountBalance db={db} />} />
+              <Route path="/settings"       element={<Settings       db={db} onRefresh={fetchData} />} />
               <Route path="*"               element={<Navigate to="/" replace />} />
             </Routes>
           )}
