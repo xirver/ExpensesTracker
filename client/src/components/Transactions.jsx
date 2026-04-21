@@ -44,7 +44,7 @@ export default function Transactions({ db, onRefresh }) {
       }
       return true
     })
-  }, [transactions, filterYear, filterMonth, filterType, filterCat, search])
+  }, [transactions, filterYear, filterMonth, filterType, filterCat, filterAcct, search])
 
   const totals = useMemo(() => {
     const income   = filtered.filter(t => t.type === 'Income').reduce((s, t) => s + t.amount, 0)
