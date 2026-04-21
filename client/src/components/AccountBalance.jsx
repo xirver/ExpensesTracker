@@ -14,76 +14,38 @@ function CustomTooltip({ active, payload, label }) {
   )
 }
 
-export default function AccountBalance({ db }) {
-  const transactions = useMemo(() => db?.transactions || [], [db])
-  const settings     = useMemo(() => db?.settings || {}, [db])
-  const accounts     = useMemo(() => settings.accounts || [{ name: 'Conto', startingBalance: 0 }], [settings])
+function AccountView({ account, transactions }) {
+  const ledger       = useMemo(() => accountBalance(transactions, account.startingBalance, account.name), [transactions, account])
+  const balance      = useMemo(() => currentBalance(transactions, account.startingBalance, account.name), [transactions, account])
+  const displayLedger = useMemo(() => [...ledger].reverse(), [ledger])
 
-  const [selectedName, setSelectedName] = useState(null)
-  const account = useMemo(
-    () => accounts.find(a => a.name === selectedName) || accounts[0] || { name: 'Conto', startingBalance: 0 },
-    [accounts, selectedName]
-  )
-
-  const ledger  = useMemo(() => accountBalance(transactions, account.startingBalance, account.name), [transactions, account])
-  const balance = useMemo(() => currentBalance(transactions, account.startingBalance, account.name), [transactions, account])
-  const total   = useMemo(() => totalBalance(transactions, accounts), [transactions, accounts])
-
-  // Monthly balance for chart: sample last balance per month
   const chartData = useMemo(() => {
     const monthMap = {}
     for (const entry of ledger) {
-      const key = entry.date?.slice(0, 7) // YYYY-MM
+      const key = entry.date?.slice(0, 7)
       if (key) monthMap[key] = entry.balance
     }
     return Object.entries(monthMap)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, balance]) => {
+      .map(([key, bal]) => {
         const [y, m] = key.split('-')
-        return { label: `${m}/${y.slice(2)}`, balance }
+        return { label: `${m}/${y.slice(2)}`, balance: bal }
       })
   }, [ledger])
 
-  const displayLedger = useMemo(() => [...ledger].reverse(), [ledger])
-
-  if (!db) return <div className="loading">Caricamento...</div>
-
   return (
-    <div>
-      <div className="page-header">
-        <div className="page-title">Saldo Conto</div>
-        {accounts.length > 1 && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            {accounts.map(a => (
-              <button
-                key={a.name}
-                className={`month-tab ${account.name === a.name ? 'active' : ''}`}
-                onClick={() => setSelectedName(a.name)}
-              >
-                {a.name}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="kpi-grid" style={{ marginBottom: 24 }}>
+    <>
+      <div className="kpi-grid" style={{ marginBottom: 16 }}>
         <div className="kpi-card">
-          <div className="kpi-label">Saldo — {account.name}</div>
+          <div className="kpi-label">Saldo Attuale</div>
           <div className={`kpi-value ${balance >= 0 ? 'positive' : 'negative'}`}>{fmt(balance)}</div>
         </div>
-        {accounts.length > 1 && (
-          <div className="kpi-card">
-            <div className="kpi-label">Saldo Totale (tutti i conti)</div>
-            <div className={`kpi-value ${total >= 0 ? 'positive' : 'negative'}`}>{fmt(total)}</div>
-          </div>
-        )}
         <div className="kpi-card">
           <div className="kpi-label">Saldo Iniziale</div>
           <div className="kpi-value neutral">{fmt(account.startingBalance)}</div>
         </div>
         <div className="kpi-card">
-          <div className="kpi-label">Variazione Totale</div>
+          <div className="kpi-label">Variazione</div>
           <div className={`kpi-value ${balance - account.startingBalance >= 0 ? 'positive' : 'negative'}`}>
             {fmt(balance - account.startingBalance)}
           </div>
@@ -100,7 +62,7 @@ export default function AccountBalance({ db }) {
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <defs>
-                <linearGradient id="balGrad2" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient id="balGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%"  stopColor="var(--accent)" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="var(--accent)" stopOpacity={0} />
                 </linearGradient>
@@ -109,7 +71,7 @@ export default function AccountBalance({ db }) {
               <XAxis dataKey="label" tick={{ fill: 'var(--text2)', fontSize: 11 }} />
               <YAxis tick={{ fill: 'var(--text2)', fontSize: 11 }} tickFormatter={v => `€${v}`} />
               <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="balance" stroke="var(--accent)" fill="url(#balGrad2)" strokeWidth={2} />
+              <Area type="monotone" dataKey="balance" stroke="var(--accent)" fill="url(#balGrad)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -153,6 +115,51 @@ export default function AccountBalance({ db }) {
           </div>
         )}
       </div>
+    </>
+  )
+}
+
+export default function AccountBalance({ db }) {
+  const transactions = useMemo(() => db?.transactions || [], [db])
+  const settings     = useMemo(() => db?.settings || {}, [db])
+  const accounts     = useMemo(() => settings.accounts || [{ name: 'Conto', startingBalance: 0 }], [settings])
+  const total        = useMemo(() => totalBalance(transactions, accounts), [transactions, accounts])
+
+  const [selectedName, setSelectedName] = useState(null)
+  const account = useMemo(
+    () => accounts.find(a => a.name === selectedName) || accounts[0],
+    [accounts, selectedName]
+  )
+
+  if (!db) return <div className="loading">Caricamento...</div>
+
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-title">Saldo Conto</div>
+        {accounts.length > 1 && (
+          <div className="kpi-card" style={{ padding: '10px 16px' }}>
+            <div className="kpi-label" style={{ marginBottom: 2 }}>Totale tutti i conti</div>
+            <div className={`kpi-value ${total >= 0 ? 'positive' : 'negative'}`} style={{ fontSize: 18 }}>{fmt(total)}</div>
+          </div>
+        )}
+      </div>
+
+      {accounts.length > 1 && (
+        <div className="month-tabs" style={{ marginBottom: 20 }}>
+          {accounts.map(a => (
+            <button
+              key={a.name}
+              className={`month-tab ${account?.name === a.name ? 'active' : ''}`}
+              onClick={() => setSelectedName(a.name)}
+            >
+              {a.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {account && <AccountView account={account} transactions={transactions} />}
     </div>
   )
 }
