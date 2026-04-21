@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area
@@ -43,19 +43,33 @@ function PieTooltip({ active, payload }) {
 }
 
 export default function Dashboard({ db }) {
-  const now  = new Date()
-  const year = now.getFullYear()
+  const now   = new Date()
+  const year  = now.getFullYear()
   const month = now.getMonth() + 1
 
-  const transactions = useMemo(() => db?.transactions || [], [db])
-  const settings     = useMemo(() => db?.settings || {}, [db])
-  const accounts     = useMemo(() => settings.accounts || [], [settings])
+  const allTransactions = useMemo(() => db?.transactions || [], [db])
+  const settings        = useMemo(() => db?.settings || {}, [db])
+  const accounts        = useMemo(() => settings.accounts || [], [settings])
 
-  const ytd      = useMemo(() => ytdTotals(transactions, year), [transactions, year])
+  const [selectedAcct, setSelectedAcct] = useState('__all__')
+  const activeAccount = useMemo(() => accounts.find(a => a.name === selectedAcct), [accounts, selectedAcct])
+
+  // Filter transactions by selected account
+  const transactions = useMemo(
+    () => selectedAcct === '__all__' ? allTransactions : allTransactions.filter(tx => tx.account === selectedAcct),
+    [allTransactions, selectedAcct]
+  )
+
+  const accountsForBalance = useMemo(
+    () => selectedAcct === '__all__' ? accounts : (activeAccount ? [activeAccount] : []),
+    [accounts, selectedAcct, activeAccount]
+  )
+
+  const ytd       = useMemo(() => ytdTotals(transactions, year), [transactions, year])
   const thisMonth = useMemo(() => currentMonthTotals(transactions), [transactions])
-  const balance  = useMemo(() => totalBalance(transactions, accounts), [transactions, accounts])
-  const monthly  = useMemo(() => monthlyBreakdown(transactions, year), [transactions, year])
-  const byGroup  = useMemo(() => expenseByGroup(transactions, year), [transactions, year])
+  const balance   = useMemo(() => totalBalance(transactions, accountsForBalance), [transactions, accountsForBalance])
+  const monthly   = useMemo(() => monthlyBreakdown(transactions, year), [transactions, year])
+  const byGroup   = useMemo(() => expenseByGroup(transactions, year), [transactions, year])
   const byCategory = useMemo(() => expenseByCategory(transactions, year).slice(0, 8), [transactions])
 
   const thisMonthByCategory = useMemo(() => {
@@ -65,15 +79,14 @@ export default function Dashboard({ db }) {
     )
   }, [transactions, year, month])
 
-  // Balance over time (monthly)
   const balanceHistory = useMemo(() => {
-    const startingBal = accounts.reduce((s, a) => s + a.startingBalance, 0)
+    const startingBal = accountsForBalance.reduce((s, a) => s + a.startingBalance, 0)
     let bal = startingBal
     return monthly.map(m => {
       bal += m.income - m.expenses
       return { label: m.label, balance: Math.round(bal * 100) / 100 }
     })
-  }, [monthly, accounts])
+  }, [monthly, accountsForBalance])
 
   if (!db) return <div className="loading">Caricamento...</div>
 
@@ -81,6 +94,14 @@ export default function Dashboard({ db }) {
     <div>
       <div className="page-header">
         <div className="page-title">Dashboard {year}</div>
+        {accounts.length > 1 && (
+          <div className="month-tabs" style={{ marginBottom: 0 }}>
+            <button className={`month-tab ${selectedAcct === '__all__' ? 'active' : ''}`} onClick={() => setSelectedAcct('__all__')}>Tutti</button>
+            {accounts.map(a => (
+              <button key={a.name} className={`month-tab ${selectedAcct === a.name ? 'active' : ''}`} onClick={() => setSelectedAcct(a.name)}>{a.name}</button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="kpi-grid">

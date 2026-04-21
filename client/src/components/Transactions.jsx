@@ -16,15 +16,17 @@ function GroupBadge({ group }) {
 }
 
 export default function Transactions({ db, onRefresh }) {
-  const [modal,     setModal]    = useState(null) // null | 'new' | tx object
-  const [filterMonth,  setMonth] = useState('')
-  const [filterType,   setType]  = useState('')
-  const [filterCat,    setCat]   = useState('')
-  const [search,       setSearch]= useState('')
-  const [deleting,  setDeleting] = useState(null)
+  const [modal,        setModal]   = useState(null)
+  const [filterMonth,  setMonth]  = useState('')
+  const [filterType,   setType]   = useState('')
+  const [filterCat,    setCat]    = useState('')
+  const [filterAcct,   setAcct]   = useState('')
+  const [search,       setSearch] = useState('')
+  const [deleting,  setDeleting]  = useState(null)
 
   const transactions = useMemo(() => db?.transactions || [], [db])
   const settings     = useMemo(() => db?.settings || {}, [db])
+  const accounts     = useMemo(() => settings.accounts || [], [settings])
 
   const years  = useMemo(() => [...new Set(transactions.map(tx => tx.date?.slice(0, 4)))].sort().reverse(), [transactions])
   const [filterYear, setYear] = useState(() => String(new Date().getFullYear()))
@@ -35,6 +37,7 @@ export default function Transactions({ db, onRefresh }) {
       if (filterMonth && tx.date?.slice(5, 7) !== filterMonth.padStart(2, '0')) return false
       if (filterType  && tx.type !== filterType) return false
       if (filterCat   && tx.category !== filterCat) return false
+      if (filterAcct  && tx.account !== filterAcct) return false
       if (search) {
         const q = search.toLowerCase()
         if (!tx.description?.toLowerCase().includes(q) && !tx.category?.toLowerCase().includes(q) && !tx.vendor?.toLowerCase().includes(q)) return false
@@ -125,6 +128,12 @@ export default function Transactions({ db, onRefresh }) {
           <option value="">Tutte le categorie</option>
           {categories.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
+        {accounts.length > 1 && (
+          <select value={filterAcct} onChange={e => setAcct(e.target.value)} style={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', padding: '7px 12px', fontSize: 13 }}>
+            <option value="">Tutti i conti</option>
+            {accounts.map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
+          </select>
+        )}
       </div>
 
       <div className="card">
