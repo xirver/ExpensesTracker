@@ -1,0 +1,12 @@
+services:
+  expenses-tracker:
+    build: .
+    container_name: expenses-tracker
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=cambia-questa-stringa-segreta
+    restart: unless-stopped
