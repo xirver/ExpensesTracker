@@ -21,7 +21,8 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
   const [loading, setLoading] = useState(false)
 
   const isTransfer  = form.type === 'Transfer'
-  const categories  = (settings?.categories || []).filter(c => c.type === form.type)
+  // Income can use any category (e.g. reimbursements), Expense only expense categories
+  const categories  = (settings?.categories || []).filter(c => form.type === 'Income' ? c.type !== 'Transfer' : c.type === form.type)
   const accounts    = settings?.accounts || []
   const tags        = settings?.tags     || []
 
