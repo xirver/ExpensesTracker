@@ -142,7 +142,7 @@ export default function AccountBalance({ db }) {
 
   const [selectedName, setSelectedName] = useState('__all__')
 
-  // Combined "Tutti" ledger across all accounts
+  // Combined "Tutti" ledger — transfers excluded (net zero across accounts)
   const allLedger = useMemo(() => {
     const startingBal = accounts.reduce((s, a) => s + a.startingBalance, 0)
     const sorted = [...transactions]
@@ -150,7 +150,7 @@ export default function AccountBalance({ db }) {
       .sort((a, b) => new Date(a.date) - new Date(b.date))
     let balance = startingBal
     return sorted.map(tx => {
-      balance = Math.round((balance + signedAmount(tx)) * 100) / 100
+      balance = Math.round((balance + signedAmount(tx, null)) * 100) / 100
       return { ...tx, balance }
     })
   }, [transactions, accounts])

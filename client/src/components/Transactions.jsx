@@ -159,6 +159,9 @@ export default function Transactions({ db, onRefresh }) {
                     <td style={{ color: 'var(--text2)', whiteSpace: 'nowrap' }}>{fmtDate(tx.date)}</td>
                     <td>
                       <div>{tx.description}</div>
+                      {tx.type === 'Transfer' && tx.fromAccount && (
+                        <div style={{ fontSize: 11, color: 'var(--text2)' }}>{tx.fromAccount} → {tx.toAccount}</div>
+                      )}
                       {tx.vendor && <div style={{ fontSize: 11, color: 'var(--text2)' }}>{tx.vendor}</div>}
                       {tx.tags?.length > 0 && (
                         <div style={{ fontSize: 11, color: 'var(--accent)', marginTop: 2 }}>{tx.tags.join(', ')}</div>
@@ -166,10 +169,12 @@ export default function Transactions({ db, onRefresh }) {
                     </td>
                     <td>{tx.category}</td>
                     <td><GroupBadge group={tx.group} /></td>
-                    <td style={{ color: 'var(--text2)' }}>{tx.account}</td>
+                    <td style={{ color: 'var(--text2)' }}>
+                      {tx.type === 'Transfer' ? `${tx.fromAccount} → ${tx.toAccount}` : tx.account}
+                    </td>
                     <td style={{ textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      <span className={tx.type === 'Income' ? 'positive' : tx.type === 'Expense' ? 'negative' : ''}>
-                        {tx.type === 'Income' ? '+' : tx.type === 'Expense' ? '-' : ''}{fmt(tx.amount)}
+                      <span className={tx.type === 'Income' ? 'positive' : tx.type === 'Expense' ? 'negative' : 'neutral'}>
+                        {tx.type === 'Income' ? '+' : tx.type === 'Expense' ? '-' : '⇄'} {fmt(tx.amount)}
                       </span>
                     </td>
                     <td>

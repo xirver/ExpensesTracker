@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { api } from '../api'
 
 export default function TransactionModal({ tx, settings, onClose, onSaved }) {
@@ -11,6 +11,8 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
     type:        tx?.type        || 'Expense',
     amount:      tx?.amount != null ? String(tx.amount) : '',
     account:     tx?.account     || settings?.accounts?.[0]?.name || '',
+    fromAccount: tx?.fromAccount || settings?.accounts?.[0]?.name || '',
+    toAccount:   tx?.toAccount   || settings?.accounts?.[1]?.name || settings?.accounts?.[0]?.name || '',
     vendor:      tx?.vendor      || '',
     tags:        tx?.tags        || [],
     notes:       tx?.notes       || '',
@@ -18,16 +20,15 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
   const [error,   setError]   = useState('')
   const [loading, setLoading] = useState(false)
 
-  const categories  = (settings?.categories || []).filter(c => c.type === form.type || form.type === 'Transfer')
-  const accounts    = settings?.accounts    || []
-  const tags        = settings?.tags        || []
+  const isTransfer  = form.type === 'Transfer'
+  const categories  = (settings?.categories || []).filter(c => c.type === form.type)
+  const accounts    = settings?.accounts || []
+  const tags        = settings?.tags     || []
 
   function set(field, value) {
     setForm(f => {
       const next = { ...f, [field]: value }
-      if (field === 'type' && !categories.find(c => c.name === f.category)) {
-        next.category = ''
-      }
+      if (field === 'type') next.category = ''
       return next
     })
   }
@@ -39,7 +40,6 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
     }))
   }
 
-  // Derive group from selected category
   function groupFor(cat) {
     return settings?.categories?.find(c => c.name === cat)?.group || ''
   }
@@ -47,22 +47,48 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
   async function submit(e) {
     e.preventDefault()
     setError('')
-    if (!form.date || !form.description || !form.category || !form.amount) {
-      setError('Compila tutti i campi obbligatori')
-      return
-    }
     const amount = parseFloat(form.amount)
-    if (isNaN(amount) || amount <= 0) {
-      setError('Importo non valido')
+    if (!form.date || !form.amount || isNaN(amount) || amount <= 0) {
+      setError('Data e importo sono obbligatori')
       return
     }
+    if (isTransfer) {
+      if (form.fromAccount === form.toAccount) {
+        setError('I due conti devono essere diversi')
+        return
+      }
+    } else {
+      if (!form.description || !form.category) {
+        setError('Compila tutti i campi obbligatori')
+        return
+      }
+    }
+
     setLoading(true)
     try {
-      const payload = {
-        ...form,
-        amount,
-        group: groupFor(form.category)
+      let payload
+      if (isTransfer) {
+        payload = {
+          date:        form.date,
+          description: form.description || `${form.fromAccount} → ${form.toAccount}`,
+          category:    'Trasferimento',
+          group:       'Trasferimento',
+          type:        'Transfer',
+          amount,
+          account:     form.fromAccount,
+          fromAccount: form.fromAccount,
+          toAccount:   form.toAccount,
+          tags:        [],
+          notes:       form.notes,
+        }
+      } else {
+        payload = {
+          ...form,
+          amount,
+          group: groupFor(form.category)
+        }
       }
+
       if (isEdit) {
         await api.updateTransaction(tx.id, payload)
       } else {
@@ -81,13 +107,13 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
       <div className="modal">
         <div className="modal-title">{isEdit ? 'Modifica Transazione' : 'Nuova Transazione'}</div>
         <form onSubmit={submit}>
+
           {/* Type selector */}
           <div className="form-group">
             <label className="form-label">Tipo</label>
             <div style={{ display: 'flex', gap: 8 }}>
               {['Expense', 'Income', 'Transfer'].map(t => (
-                <button key={t} type="button"
-                  onClick={() => set('type', t)}
+                <button key={t} type="button" onClick={() => set('type', t)}
                   style={{
                     flex: 1, padding: '7px 0', borderRadius: 8, border: '1px solid var(--border)',
                     background: form.type === t ? 'var(--accent)' : 'var(--surface2)',
@@ -100,6 +126,7 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
             </div>
           </div>
 
+          {/* Date + Amount */}
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">Data *</label>
@@ -111,52 +138,76 @@ export default function TransactionModal({ tx, settings, onClose, onSaved }) {
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Descrizione *</label>
-            <input className="form-control" value={form.description} onChange={e => set('description', e.target.value)} placeholder="es. Supermercato Agugliano" />
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label">Categoria *</label>
-              <select className="form-control" value={form.category} onChange={e => set('category', e.target.value)}>
-                <option value="">Seleziona...</option>
-                {categories.map(c => (
-                  <option key={c.name} value={c.name}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Conto</label>
-              <select className="form-control" value={form.account} onChange={e => set('account', e.target.value)}>
-                {accounts.map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
-              </select>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Venditore</label>
-            <input className="form-control" value={form.vendor} onChange={e => set('vendor', e.target.value)} placeholder="es. Esselunga" />
-          </div>
-
-          {tags.length > 0 && (
-            <div className="form-group">
-              <label className="form-label">Tag</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {tags.map(tag => (
-                  <button key={tag} type="button"
-                    onClick={() => toggleTag(tag)}
-                    style={{
-                      padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)',
-                      background: form.tags.includes(tag) ? 'var(--accent)' : 'var(--surface2)',
-                      color: form.tags.includes(tag) ? '#fff' : 'var(--text2)',
-                      cursor: 'pointer', fontSize: 12, fontWeight: 600
-                    }}>
-                    {tag}
-                  </button>
-                ))}
+          {isTransfer ? (
+            /* ── Transfer fields ── */
+            <>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Da conto *</label>
+                  <select className="form-control" value={form.fromAccount} onChange={e => set('fromAccount', e.target.value)}>
+                    {accounts.map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">A conto *</label>
+                  <select className="form-control" value={form.toAccount} onChange={e => set('toAccount', e.target.value)}>
+                    {accounts.map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
+                  </select>
+                </div>
               </div>
-            </div>
+              <div className="form-group">
+                <label className="form-label">Descrizione</label>
+                <input className="form-control" value={form.description} onChange={e => set('description', e.target.value)} placeholder={`${form.fromAccount} → ${form.toAccount}`} />
+              </div>
+            </>
+          ) : (
+            /* ── Expense / Income fields ── */
+            <>
+              <div className="form-group">
+                <label className="form-label">Descrizione *</label>
+                <input className="form-control" value={form.description} onChange={e => set('description', e.target.value)} placeholder="es. Supermercato Agugliano" />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Categoria *</label>
+                  <select className="form-control" value={form.category} onChange={e => set('category', e.target.value)}>
+                    <option value="">Seleziona...</option>
+                    {categories.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Conto</label>
+                  <select className="form-control" value={form.account} onChange={e => set('account', e.target.value)}>
+                    {accounts.map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Venditore</label>
+                <input className="form-control" value={form.vendor} onChange={e => set('vendor', e.target.value)} placeholder="es. Esselunga" />
+              </div>
+
+              {tags.length > 0 && (
+                <div className="form-group">
+                  <label className="form-label">Tag</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    {tags.map(tag => (
+                      <button key={tag} type="button" onClick={() => toggleTag(tag)}
+                        style={{
+                          padding: '4px 12px', borderRadius: 6, border: '1px solid var(--border)',
+                          background: form.tags.includes(tag) ? 'var(--accent)' : 'var(--surface2)',
+                          color: form.tags.includes(tag) ? '#fff' : 'var(--text2)',
+                          cursor: 'pointer', fontSize: 12, fontWeight: 600
+                        }}>
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           <div className="form-group">

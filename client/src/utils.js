@@ -20,11 +20,17 @@ export function monthName(n) { return MONTH_NAMES[n - 1] || '' }
 export function txYear(tx)  { return tx.date?.slice(0, 4) }
 export function txMonth(tx) { return parseInt(tx.date?.slice(5, 7)) }
 
-// Returns signed amount: positive for income, negative for expense
-export function signedAmount(tx) {
-  if (tx.type === 'Income') return tx.amount
-  if (tx.type === 'Expense') return -tx.amount
-  return 0 // Transfer
+// Returns signed amount for a specific account (pass accountName for transfers)
+export function signedAmount(tx, accountName) {
+  if (tx.type === 'Income')   return tx.amount
+  if (tx.type === 'Expense')  return -tx.amount
+  if (tx.type === 'Transfer') {
+    if (!accountName) return 0
+    if (tx.fromAccount === accountName) return -tx.amount
+    if (tx.toAccount   === accountName) return  tx.amount
+    return 0
+  }
+  return 0
 }
 
 // Monthly summary: { month: 1..12, income, expenses, cashflow }[]
@@ -73,14 +79,18 @@ export function expenseByCategory(transactions, year) {
     .sort((a, b) => b.value - a.value)
 }
 
-// Running balance for a single account
+// Running balance for a single account (includes transfers)
 export function accountBalance(transactions, startingBalance, accountName) {
   const sorted = [...transactions]
-    .filter(tx => tx.type !== 'Transfer' && (!accountName || tx.account === accountName))
+    .filter(tx => {
+      if (!accountName) return tx.type !== 'Transfer'
+      if (tx.type === 'Transfer') return tx.fromAccount === accountName || tx.toAccount === accountName
+      return tx.account === accountName
+    })
     .sort((a, b) => new Date(a.date) - new Date(b.date))
   let balance = startingBalance
   return sorted.map(tx => {
-    balance = round2(balance + signedAmount(tx))
+    balance = round2(balance + signedAmount(tx, accountName))
     return { ...tx, balance }
   })
 }
