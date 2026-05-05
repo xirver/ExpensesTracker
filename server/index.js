@@ -55,8 +55,9 @@ function defaultDB() {
         { name: 'Vestiti',       group: 'Discrezionali',  type: 'Expense'  },
         { name: 'Giochi',        group: 'Discrezionali',  type: 'Expense'  },
         { name: 'Libri',         group: 'Discrezionali',  type: 'Expense'  },
-        { name: 'Viaggi',        group: 'Discrezionali',  type: 'Expense'  },
-        { name: 'Salute',        group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Viaggi',           group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Intrattenimento', group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Salute',          group: 'Discrezionali',  type: 'Expense'  },
         { name: 'Regali',        group: 'Regali',         type: 'Expense'  },
         { name: 'Stipendio',     group: 'Entrate',        type: 'Income'   },
         { name: 'Trasferimento', group: 'Trasferimento',  type: 'Transfer' }
