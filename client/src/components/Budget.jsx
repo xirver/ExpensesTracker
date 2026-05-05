@@ -38,8 +38,10 @@ export default function Budget({ db, onRefresh }) {
   )
 
   function getActual(category) {
+    const catDef = (settings.categories || []).find(c => c.name === category)
+    const txType = catDef?.type === 'Income' ? 'Income' : 'Expense'
     return transactions
-      .filter(tx => tx.category === category && txYear(tx) === String(year) && txMonth(tx) === selectedMonth)
+      .filter(tx => tx.category === category && tx.type === txType && txYear(tx) === String(year) && txMonth(tx) === selectedMonth)
       .reduce((s, tx) => s + tx.amount, 0)
   }
 
