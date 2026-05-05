@@ -45,32 +45,28 @@ function defaultDB() {
     transactions: [],
     settings: {
       categories: [
-        { name: 'Housing',              group: 'Fixed',          type: 'Expense' },
-        { name: 'Grocery',              group: 'Fixed',          type: 'Expense' },
-        { name: 'Take-out',             group: 'Fixed',          type: 'Expense' },
-        { name: 'Restaurant',           group: 'Discretionary',  type: 'Expense' },
-        { name: 'Utilities',            group: 'Fixed',          type: 'Expense' },
-        { name: 'Subscriptions',        group: 'Fixed',          type: 'Expense' },
-        { name: 'Transportation',       group: 'Fixed',          type: 'Expense' },
-        { name: 'Household',            group: 'Fixed',          type: 'Expense' },
-        { name: 'Clothing',             group: 'Discretionary',  type: 'Expense' },
-        { name: 'Self Care',            group: 'Discretionary',  type: 'Expense' },
-        { name: 'Travel, Entertainment',group: 'Discretionary',  type: 'Expense' },
-        { name: 'Big Purchases',        group: 'Discretionary',  type: 'Expense' },
-        { name: 'Gift',                 group: 'Giving',         type: 'Expense' },
-        { name: 'Charity',              group: 'Giving',         type: 'Expense' },
-        { name: 'Paycheck',             group: 'Active Income',  type: 'Income'  },
-        { name: 'Investment Income',    group: 'Passive Income', type: 'Income'  },
-        { name: 'Investment',           group: 'Fixed',          type: 'Expense' },
-        { name: 'Transfer',             group: 'Transfer',       type: 'Transfer'}
+        { name: 'Casa',          group: 'Fisse',          type: 'Expense'  },
+        { name: 'Spesa',         group: 'Fisse',          type: 'Expense'  },
+        { name: 'Utenze',        group: 'Fisse',          type: 'Expense'  },
+        { name: 'Abbonamenti',   group: 'Fisse',          type: 'Expense'  },
+        { name: 'Investimento',  group: 'Fisse',          type: 'Expense'  },
+        { name: 'Benzina',       group: 'Fisse',          type: 'Expense'  },
+        { name: 'Ristoranti',    group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Vestiti',       group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Giochi',        group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Libri',         group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Viaggi',        group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Salute',        group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Regali',        group: 'Regali',         type: 'Expense'  },
+        { name: 'Stipendio',     group: 'Entrate',        type: 'Income'   },
+        { name: 'Trasferimento', group: 'Trasferimento',  type: 'Transfer' }
       ],
       categoryGroups: [
-        { name: 'Fixed',          type: 'Expense'  },
-        { name: 'Discretionary',  type: 'Expense'  },
-        { name: 'Giving',         type: 'Expense'  },
-        { name: 'Active Income',  type: 'Income'   },
-        { name: 'Passive Income', type: 'Income'   },
-        { name: 'Transfer',       type: 'Transfer' }
+        { name: 'Fisse',          type: 'Expense'  },
+        { name: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Regali',         type: 'Expense'  },
+        { name: 'Entrate',        type: 'Income'   },
+        { name: 'Trasferimento',  type: 'Transfer' }
       ],
       accounts: [
         { name: 'Intesa San Paolo', startingBalance: 0 }
