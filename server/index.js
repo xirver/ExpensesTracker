@@ -58,6 +58,9 @@ function defaultDB() {
         { name: 'Viaggi',           group: 'Discrezionali',  type: 'Expense'  },
         { name: 'Intrattenimento', group: 'Discrezionali',  type: 'Expense'  },
         { name: 'Salute',          group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Manutenzione',   group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Grandi Spese',   group: 'Discrezionali',  type: 'Expense'  },
+        { name: 'Animali',        group: 'Discrezionali',  type: 'Expense'  },
         { name: 'Regali',        group: 'Regali',         type: 'Expense'  },
         { name: 'Stipendio',     group: 'Entrate',        type: 'Income'   },
         { name: 'Trasferimento', group: 'Trasferimento',  type: 'Transfer' }
