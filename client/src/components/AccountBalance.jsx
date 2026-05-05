@@ -114,9 +114,20 @@ function AccountView({ account, transactions, accounts, allLedger, total }) {
                     <td>{tx.description}</td>
                     <td style={{ color: 'var(--text2)' }}>{tx.category}</td>
                     <td style={{ textAlign: 'right', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                      <span className={tx.type === 'Income' ? 'positive' : 'negative'}>
-                        {tx.type === 'Income' ? '+' : '-'}{fmt(tx.amount)}
-                      </span>
+                      {(() => {
+                        let sign, cls
+                        if (tx.type === 'Income') {
+                          sign = '+'; cls = 'positive'
+                        } else if (tx.type === 'Expense') {
+                          sign = '-'; cls = 'negative'
+                        } else {
+                          // Transfer: positivo se questo conto è il destinatario
+                          const isIncoming = tx.toAccount === account?.name
+                          sign = isIncoming ? '+' : '-'
+                          cls  = isIncoming ? 'positive' : 'negative'
+                        }
+                        return <span className={cls}>{sign}{fmt(tx.amount)}</span>
+                      })()}
                     </td>
                     <td style={{ textAlign: 'right', fontWeight: 700, whiteSpace: 'nowrap' }}>
                       <span className={tx.balance >= 0 ? 'balance-positive' : 'balance-negative'}>
