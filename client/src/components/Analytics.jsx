@@ -285,10 +285,10 @@ export default function Analytics({ db }) {
               <div className="card-title">Top Categorie di Spesa</div>
               {byCategory.length === 0 ? <div className="empty">Nessuna spesa</div> : (
                 <ResponsiveContainer width="100%" height={Math.max(240, byCategory.length * 36)}>
-                  <BarChart data={byCategory} layout="vertical" margin={{ top: 4, right: 8, left: isMobile ? 4 : 90, bottom: 0 }}>
+                  <BarChart data={byCategory} layout="vertical" margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                     <XAxis type="number" tick={{ fill: 'var(--text2)', fontSize: 11 }} tickFormatter={v => `€${v}`} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: 'var(--text2)', fontSize: isMobile ? 10 : 11 }} width={isMobile ? 75 : 90} />
+                    <YAxis type="category" dataKey="name" tick={{ fill: 'var(--text2)', fontSize: isMobile ? 10 : 11 }} width={isMobile ? 75 : 100} />
                     <Tooltip content={<ChartTooltip />} />
                     <Bar dataKey="value" name="Spesa" fill="var(--accent)" radius={[0, 3, 3, 0]} />
                   </BarChart>
