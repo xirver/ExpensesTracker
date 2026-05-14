@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { api } from '../api'
 import { fmt } from '../utils'
+import { showToast } from './Toast'
 
 function AccountRow({ account, onSave, onDelete }) {
   const [editing, setEditing] = useState(false)
@@ -83,6 +84,7 @@ export default function Settings({ db, onRefresh }) {
     const next = accounts.map((a, i) => i === index ? updated : a)
     await api.updateSettings({ accounts: next })
     onRefresh()
+    showToast('Conto aggiornato')
   }
 
   async function deleteAccount(index) {
@@ -94,6 +96,7 @@ export default function Settings({ db, onRefresh }) {
     const next = accounts.filter((_, i) => i !== index)
     await api.updateSettings({ accounts: next })
     onRefresh()
+    showToast('Conto eliminato')
   }
 
   async function addAccount() {
@@ -110,6 +113,7 @@ export default function Settings({ db, onRefresh }) {
     setNewBal('')
     setAdding(false)
     setSaving(false)
+    showToast('Conto aggiunto')
   }
 
   if (!db) return <div className="loading">Caricamento...</div>

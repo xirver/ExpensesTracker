@@ -98,43 +98,43 @@ export default function Budget({ db, onRefresh }) {
             {totalBudget > 0 && <> / budget {fmt(totalBudget)}</>}
           </div>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Categoria</th>
-              <th>Gruppo</th>
-              <th style={{ textAlign: 'right' }}>Effettivo</th>
-              <th style={{ textAlign: 'right' }}>Budget</th>
-              <th style={{ textAlign: 'right' }}>Diff.</th>
-              <th style={{ width: 180 }}>Avanzamento</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(({ cat, actual, budget, diff }) => (
-              <tr key={cat.name}>
-                <td>{cat.name}</td>
-                <td><span style={{ fontSize: 11, color: 'var(--text2)' }}>{cat.group}</span></td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(actual)}</td>
-                <td style={{ textAlign: 'right' }}>
-                  {editing ? (
-                    <input
-                      type="number" step="0.01" min="0"
-                      value={budgetEdits[cat.name] ?? ''}
-                      onChange={e => setBudgetEdits(b => ({ ...b, [cat.name]: e.target.value }))}
-                      style={{ width: 90, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text)', padding: '3px 8px', textAlign: 'right', fontSize: 13 }}
-                    />
-                  ) : (
-                    budget > 0 ? fmt(budget) : <span style={{ color: 'var(--text2)' }}>—</span>
-                  )}
-                </td>
-                <td style={{ textAlign: 'right', color: diff >= 0 ? 'var(--positive)' : 'var(--negative)', fontWeight: 600 }}>
-                  {budget > 0 ? fmt(diff) : '—'}
-                </td>
-                <td><ProgressBar actual={actual} budget={budget} /></td>
+        <div className="table-wrap">
+          <table style={{ minWidth: 500 }}>
+            <thead>
+              <tr>
+                <th>Categoria</th>
+                <th style={{ textAlign: 'right' }}>Effettivo</th>
+                <th style={{ textAlign: 'right' }}>Budget</th>
+                <th style={{ textAlign: 'right' }}>Diff.</th>
+                <th style={{ minWidth: 120 }}>Avanzamento</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map(({ cat, actual, budget, diff }) => (
+                <tr key={cat.name}>
+                  <td>{cat.name}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 600 }}>{fmt(actual)}</td>
+                  <td style={{ textAlign: 'right' }}>
+                    {editing ? (
+                      <input
+                        type="number" step="0.01" min="0"
+                        value={budgetEdits[cat.name] ?? ''}
+                        onChange={e => setBudgetEdits(b => ({ ...b, [cat.name]: e.target.value }))}
+                        style={{ width: 80, background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 6, color: 'var(--text)', padding: '3px 8px', textAlign: 'right', fontSize: 13 }}
+                      />
+                    ) : (
+                      budget > 0 ? fmt(budget) : <span style={{ color: 'var(--text2)' }}>—</span>
+                    )}
+                  </td>
+                  <td style={{ textAlign: 'right', color: diff >= 0 ? 'var(--positive)' : 'var(--negative)', fontWeight: 600 }}>
+                    {budget > 0 ? fmt(diff) : '—'}
+                  </td>
+                  <td><ProgressBar actual={actual} budget={budget} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     )
   }

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { api } from '../api'
 import { fmt, fmtDate, monthName } from '../utils'
 import TransactionModal from './TransactionModal'
+import { showToast } from './Toast'
 
 function GroupBadge({ group }) {
   const cls = {
@@ -60,14 +61,18 @@ export default function Transactions({ db, onRefresh }) {
     try {
       await api.deleteTransaction(id)
       onRefresh()
+      showToast('Transazione eliminata')
+    } catch {
+      showToast('Errore durante l\'eliminazione', 'error')
     } finally {
       setDeleting(null)
     }
   }
 
-  function handleSaved() {
+  function handleSaved(isEdit) {
     setModal(null)
     onRefresh()
+    showToast(isEdit ? 'Transazione modificata' : 'Transazione aggiunta')
   }
 
   return (
@@ -78,22 +83,22 @@ export default function Transactions({ db, onRefresh }) {
       </div>
 
       {/* Totals */}
-      <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
-        <div className="kpi-card" style={{ flex: 1 }}>
+      <div className="kpi-grid" style={{ marginBottom: 16 }}>
+        <div className="kpi-card">
           <div className="kpi-label">Spese filtrate</div>
           <div className="kpi-value negative">{fmt(totals.expenses)}</div>
         </div>
-        <div className="kpi-card" style={{ flex: 1 }}>
+        <div className="kpi-card">
           <div className="kpi-label">Entrate filtrate</div>
           <div className="kpi-value positive">{fmt(totals.income)}</div>
         </div>
-        <div className="kpi-card" style={{ flex: 1 }}>
+        <div className="kpi-card">
           <div className="kpi-label">Cashflow filtrato</div>
           <div className={`kpi-value ${totals.income - totals.expenses >= 0 ? 'positive' : 'negative'}`}>
             {fmt(totals.income - totals.expenses)}
           </div>
         </div>
-        <div className="kpi-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="kpi-card">
           <div className="kpi-label">Numero transazioni</div>
           <div className="kpi-value neutral">{filtered.length}</div>
         </div>
@@ -196,7 +201,7 @@ export default function Transactions({ db, onRefresh }) {
           tx={modal === 'new' ? null : modal}
           settings={settings}
           onClose={() => setModal(null)}
-          onSaved={handleSaved}
+          onSaved={() => handleSaved(modal !== 'new')}
         />
       )}
     </div>
