@@ -37,20 +37,24 @@ export function signedAmount(tx, accountName) {
 export function monthlyBreakdown(transactions, year) {
   const months = {}
   for (let m = 1; m <= 12; m++) {
-    months[m] = { month: m, label: monthName(m), income: 0, expenses: 0, cashflow: 0 }
+    months[m] = { month: m, label: monthName(m), income: 0, expenses: 0, investments: 0, cashflow: 0 }
   }
   for (const tx of transactions) {
     if (txYear(tx) !== String(year)) continue
     const m = txMonth(tx)
     if (!months[m]) continue
-    if (tx.type === 'Income')   months[m].income   += tx.amount
-    if (tx.type === 'Expense')  months[m].expenses += tx.amount
+    if (tx.type === 'Income')  months[m].income  += tx.amount
+    if (tx.type === 'Expense') {
+      if (tx.category === 'Investimento') months[m].investments += tx.amount
+      else                                months[m].expenses    += tx.amount
+    }
   }
   for (const m of Object.values(months)) {
-    m.cashflow = m.income - m.expenses
-    m.income   = round2(m.income)
-    m.expenses = round2(m.expenses)
-    m.cashflow = round2(m.cashflow)
+    m.cashflow    = m.income - m.expenses - m.investments
+    m.income      = round2(m.income)
+    m.expenses    = round2(m.expenses)
+    m.investments = round2(m.investments)
+    m.cashflow    = round2(m.cashflow)
   }
   return Object.values(months)
 }

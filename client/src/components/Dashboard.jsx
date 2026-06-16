@@ -69,7 +69,7 @@ export default function Dashboard({ db }) {
     const startBal = accountsForBalance.reduce((s, a) => s + a.startingBalance, 0)
     let bal = startBal
     return monthly.map(m => {
-      bal = Math.round((bal + m.income - m.expenses) * 100) / 100
+      bal = Math.round((bal + m.income - m.expenses - m.investments) * 100) / 100
       return { label: m.label, balance: bal }
     })
   }, [monthly, accountsForBalance])
@@ -117,8 +117,9 @@ export default function Dashboard({ db }) {
               <YAxis tick={{ fill: 'var(--text2)', fontSize: 11 }} tickFormatter={v => `€${v}`} />
               <Tooltip content={<ChartTooltip />} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="income"   name="Entrate" fill="var(--positive)" radius={[3,3,0,0]} />
-              <Bar dataKey="expenses" name="Spese"   fill="var(--negative)" radius={[3,3,0,0]} />
+              <Bar dataKey="income"      name="Entrate"      fill="var(--positive)" radius={[3,3,0,0]} />
+              <Bar dataKey="expenses"    name="Spese"        fill="var(--negative)" radius={[3,3,0,0]} />
+              <Bar dataKey="investments" name="Investimenti" fill="#f59e0b"          radius={[3,3,0,0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
